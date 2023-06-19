@@ -27,9 +27,11 @@ class GifCards extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image(
-            fit: BoxFit.fill,
-            image: NetworkImage(gifUrl),
+          Expanded(
+            child: Image(
+              fit: BoxFit.contain,
+              image: NetworkImage(gifUrl),
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
