@@ -1,6 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+// import 'package:sqflite/sqflite.dart';
+// import 'package:path_provider/path_provider.dart';
 
 import 'gif_cards.dart';
 import 'main.dart';
@@ -27,30 +28,21 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> autocompleteData = [];
 
   Future<void> getGIFFromAPI(String searchInput) async {
-    var data = await http.get(
-      Uri.parse(
-        'https://api.tenor.com/v1/search?q=$searchInput&key=$apiKey&limit=$limit',
-      ),
-    );
-    var dataParsed = jsonDecode(data.body);
+    final response = await Dio().get(
+        'https://g.tenor.com/v1/search?q=$searchInput&key=$apiKey&limit=$limit');
     gifUrls.clear();
     for (int i = 0; i < limit; i++) {
-      gifUrls.add(dataParsed['results'][i]['media'][0]['nanogif']['url']);
+      gifUrls.add(response.data['results'][i]['media'][0]['mediumgif']['url']);
     }
     setState(() {});
   }
 
   Future<void> getGIFAutocomplete(String searchInput) async {
-    var data = await http.get(
-      Uri.parse(
-        'https://g.tenor.com/v1/autocomplete?q=$searchInput&key=$apiKey&limit=$limit',
-      ),
-    );
-    var dataParsed = jsonDecode(data.body);
-
+    final response = await Dio().get(
+        'https://g.tenor.com/v1/autocomplete?q=$searchInput&key=$apiKey&limit=$limit');
     autocompleteData.clear();
-    autocompleteData
-        .addAll((dataParsed["results"] as List).map((item) => item as String));
+    autocompleteData.addAll(
+        (response.data['results'] as List).map((item) => item as String));
     setState(() {});
   }
 
@@ -67,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final List<Widget> widgetScreens = <Widget>[
       Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -80,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    hintText: 'Пошук...',
+                    hintText: 'Пошук картинок ...',
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.clear),
                       onPressed: () => controller.clear(),
@@ -133,10 +126,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     crossAxisSpacing: 10,
                     children: List.generate(gifUrls.length, (index) {
                       return GestureDetector(
+                        child: GifCards(gifUrls[index]),
                         onTap: () {
                           singleGifScreen(gifUrls[index]);
                         },
-                        child: GifCards(gifUrls[index]),
                       );
                     }),
                   ),
@@ -148,14 +141,18 @@ class _MyHomePageState extends State<MyHomePage> {
         style: optionStyle,
       ),
       Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
             'Налаштування',
             style: optionStyle,
           ),
           IconButton(
-            onPressed: () => MyApp.of(context).changeTheme(),
-            icon: Icon(MyApp.of(context).themeMode ? _iconLight : _iconDark),
+            onPressed: () {
+              MyApp.of(context).changeTheme();
+              setState(() {});
+            }, icon: Icon(MyApp.of(context).themeMode ? _iconLight : _iconDark),
           ),
         ],
       ),
